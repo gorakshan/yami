@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: yamifoodpod
+spec:
+  containers:
+    - name: yamifoodcontainer
+      image: techsriman/yamifood:3.0
+      ports:
+        - name: web
+          containerPort: 8080
+          protocol: TCP
+ #     livenessProbe:
+ #       httpGet:
+ #         path: /actuator/health
+ #         port: 8080
+ #       initialDelaySeconds: 15
+ #       failureThreshold: 3

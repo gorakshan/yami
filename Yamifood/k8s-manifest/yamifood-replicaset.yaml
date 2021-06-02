@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: yamifoodrs
+spec:
+  replicas: 2
+  selector:
+    matchLabels: 
+      name: yamifood
+  template:
+    metadata:
+      labels:
+        name: yamifood
+    spec:
+      containers:
+        - name: yamifoodcontainer
+          image: techsriman/yamifood:3.0
+          ports:
+            - name: web
+              containerPort: 8080
+              protocol: TCP
