@@ -1,0 +1,45 @@
+Vagrant.configure("2") do |config|
+  
+  config.vm.define "db" do | db |
+    db.vm.box = "ubuntu/bionic64"
+    
+    db.vm.provider "virtualbox" do | vb |
+      vb.name = "ibanking_db"
+      vb.cpus = 2
+      vb.memory = 2048
+    end
+
+    db.vm.network "private_network", ip: "192.168.1.2", virtualbox__intnet: "ibanking"
+
+    db.vm.provision "copy_mysql_secure_file", type: "file", source: "src/main/scripts/mysql-secure.sh", destination: "/tmp/" 
+    db.vm.provision "copy_bank_schema_file", type: "file", source: "src/main/db/bank-schema.sql", destination: "/tmp/"
+
+
+    db.vm.provision "mysql-install-provisioner", type: "shell" do | mysqlsh |
+      mysqlsh.path = "src/main/scripts/mysql-install.sh"
+    end
+
+    db.vm.provision "create-bank-db", type: "shell" do | createdb |
+      createdb.path = "src/main/scripts/create-bank-schema.sh"
+    end
+
+  end
+
+  config.vm.define "web" do | web |
+    web.vm.box = "ubuntu/bionic64"
+
+    web.vm.provider "virtualbox" do | vb |
+      vb.name = "ibanking_web"
+      vb.cpus = 2
+      vb.memory = 1024
+    end
+
+    web.vm.network "private_network", ip: "192.168.1.3", virtualbox__intnet: "ibanking"
+    web.vm.network "forwarded_port", guest: 8080, host: 8088
+    web.vm.synced_folder "target", "/u01/data/apache-tomcat-9.0.37/webapps"
+    web.vm.provision "tomcat install", type: "shell" do | tp |
+      tp.path = "src/main/scripts/tomcat-install.sh"
+    end
+    web.vm.provision "run tomcat", type: "shell", inline: "sudo /u01/data/apache-tomcat-9.0.37/bin/startup.sh", run: "always"
+  end
+end
